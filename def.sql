@@ -131,6 +131,7 @@ CREATE TABLE booking(
     booking_id char(8) NOT NULL,
     status DEFAULT 'X' char(1) NOT NULL,
     time date DEFAULT NOW()::date NOT NULL,
+    check_in_date DEFAULT NOW()::date NOT NULL,
     feedback varchar(200),
     total_price money DEFAULT 0 NOT NULL,
     payment_method DEFAULT 'cash' varchar(20) NOT NULL, 
@@ -143,7 +144,6 @@ CREATE TABLE booking_line(
     length_of_stay int NOT NULL,
     price money DEFAULT 0 NOT NULL,
     time date DEFAULT NOW()::date NOT NULL,
-    check_in_date DEFAULT NOW()::date NOT NULL,
     CONSTRAINT booking_line_pk PRIMARY KEY (booking_id, room_id)
 );
 
