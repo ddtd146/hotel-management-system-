@@ -102,7 +102,7 @@ CREATE TABLE check_in_out (
 	check_out_status char(1) DEFAULT 'N' NOT NULL,
     check_in_time date NOT NULL,
     check_out_time date NOT NULL,
-    check_in_method char(10) NOT NULL,
+    check_in_method varchar(10) NOT NULL,
     groupname varchar(30),
     CONSTRAINT check_in_out_pk PRIMARY KEY (leader_id, cus_id)
 );
