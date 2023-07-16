@@ -93,7 +93,6 @@ CREATE TABLE voucher(
 );
 
 CREATE TABLE customer (
-    leader_id char(8) NOT NULL,
     type_id char(8) NOT NULL,
     cus_id char(8) NOT NULL,
 	first_name varchar(20) NOT NULL,
@@ -102,13 +101,19 @@ CREATE TABLE customer (
 	gender char(1),
 	email char(30) NOT NULL,
     number varchar(15) NOT NULL,
-	check_in_status char(1) NOT NULL,
-	check_out_status char(1) NOT NULL,
-    check_in_time date NOT NULL,
+    CONSTRAINT customer_pk PRIMARY KEY (cus_id)
+);
+
+CREATE TABLE check_in_out (
+    leader_id char(8) NOT NULL,
+    cus_id char(8) NOT NULL,
+    check_in_status char(1) DEFAULT 'X' NOT NULL,
+	check_out_status char(1) DEFAULT 'N' NOT NULL,
+    check_in_time date DEFAULT NOT NULL,
     check_out_time date NOT NULL,
     check_in_method char(10) NOT NULL,
     groupname varchar(30),
-    CONSTRAINT customer_pk PRIMARY KEY (cus_id)
+    CONSTRAINT check_in_out_pk PRIMARY KEY (leader_id, cus_id)
 );
 
 CREATE TABLE apply(
@@ -170,8 +175,12 @@ ALTER TABLE customer
 ADD CONSTRAINT cus_fk_cus_type FOREIGN KEY (type_id)
 REFERENCES customer_type(type_id);
 
-ALTER TABLE customer
-ADD CONSTRAINT cus_fk_cus FOREIGN KEY (leader_id)
+ALTER TABLE check_in_out
+ADD CONSTRAINT cio_leader_fk_customer FOREIGN KEY (leader_id)
+REFERENCES customer(cus_id);
+
+ALTER TABLE check_in_out
+ADD CONSTRAINT cio_cus_fk_customer FOREIGN KEY (cus_id)
 REFERENCES customer(cus_id);
 
 ALTER TABLE apply
