@@ -119,7 +119,7 @@ CREATE TABLE voucher(
 );
 
 CREATE TABLE apply(
-    apply_id char(8) NOT NULL,
+    apply_id SERIAL NOT NULL,
     cus_id char(8) NOT NULL,
     voucher_id char(8) NOT NULL,
     status char(1) NOT NULL,
