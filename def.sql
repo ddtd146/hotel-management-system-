@@ -189,7 +189,7 @@ REFERENCES customer(cus_id);
 
 ALTER TABLE check_in_out
 ADD CONSTRAINT cio_book_fk_booking FOREIGN KEY (booking_id)
-REFERENCES booking(booking_id)
+REFERENCES booking(booking_id);
 
 ALTER TABLE apply
 ADD CONSTRAINT app_fk_cus FOREIGN KEY (cus_id)
@@ -210,5 +210,3 @@ REFERENCES booking(booking_id);
 ALTER TABLE booking_line
 ADD CONSTRAINT bookingl_fk_room FOREIGN KEY (room_id)
 REFERENCES room(room_id);
-
-
