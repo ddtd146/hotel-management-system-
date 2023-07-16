@@ -83,10 +83,10 @@ CREATE TABLE customer_type(
 
 
 CREATE TABLE customer (
-    type_id char(8) DEFAULT '00000000' NOT NULL,
+    type_id char(8) NOT NULL,
     cus_id char(8) NOT NULL,
 	first_name varchar(20) NOT NULL,
-    cccd char(12) NOT NULL, 
+    cccd char(12), 
 	last_name varchar(20),
 	dob date,
 	gender char(1),
@@ -129,21 +129,21 @@ CREATE TABLE apply(
 CREATE TABLE booking(
     cus_id char(8) NOT NULL,
     booking_id char(8) NOT NULL,
-    status char(1) NOT NULL,
-    time date NOT NULL,
+    status DEFAULT 'X' char(1) NOT NULL,
+    time date DEFAULT NOW()::date NOT NULL,
     feedback varchar(200),
-    total_price money NOT NULL,
-    payment_method varchar(20) NOT NULL, 
+    total_price money DEFAULT 0 NOT NULL,
+    payment_method DEFAULT 'cash' varchar(20) NOT NULL, 
     CONSTRAINT booking_pk PRIMARY KEY (booking_id)
 );
 
 CREATE TABLE booking_line(
     booking_id char(8) NOT NULL,
     room_id char(8) NOT NULL,
-    lenghth_of_stay int NOT NULL,
-    price money NOT NULL,
-    time date NOT NULL,
-    check_in_date date NOT NULL,
+    length_of_stay int NOT NULL,
+    price money DEFAULT 0 NOT NULL,
+    time date DEFAULT NOW()::date NOT NULL,
+    check_in_date DEFAULT NOW()::date NOT NULL,
     CONSTRAINT booking_line_pk PRIMARY KEY (booking_id, room_id)
 );
 
