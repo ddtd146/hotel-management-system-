@@ -100,7 +100,7 @@ CREATE TABLE check_in_out (
     cus_id char(8) NOT NULL,
     check_in_status char(1) DEFAULT 'X' NOT NULL,
 	check_out_status char(1) DEFAULT 'N' NOT NULL,
-    check_in_time date DEFAULT NOT NULL,
+    check_in_time date NOT NULL,
     check_out_time date NOT NULL,
     check_in_method char(10) NOT NULL,
     groupname varchar(30),

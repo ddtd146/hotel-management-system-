@@ -1,7 +1,8 @@
---1. Danh sach phong con trong va o tang cao 
+--1. Danh sach cac phong doi con trong va o tang cao 
 SELECT * FROM room
-WHERE status = 'E' 
-
+JOIN tag USING (room_id)
+JOIN category USING (cat_id) 
+WHERE status = 'E' AND number SIMILAR TO '[7-9]%' AND tagname = 'DOUBLE'
 --2. Danh sach service co the ap dung voi phong 
 
 SELECT * FROM service 
