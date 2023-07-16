@@ -97,14 +97,15 @@ CREATE TABLE customer (
 
 CREATE TABLE check_in_out (
     leader_id char(8) NOT NULL,
+    booking_id INTEGER NOT NULL, 
     cus_id char(8) NOT NULL,
     check_in_status char(1) DEFAULT 'X' NOT NULL,
-	check_out_status char(1) DEFAULT 'N' NOT NULL,
-    check_in_time date NOT NULL,
-    check_out_time date NOT NULL,
-    check_in_method varchar(10) NOT NULL,
+	check_out_status char(1) DEFAULT 'X' NOT NULL,
+    check_in_time date DEFAULT NOW()::date NOT NULL,
+    check_out_time date,
+    check_in_method varchar(10) DEFAULT 'cccd' NOT NULL,
     groupname varchar(30),
-    CONSTRAINT check_in_out_pk PRIMARY KEY (leader_id, cus_id)
+    CONSTRAINT check_in_out_pk PRIMARY KEY (cus_id, booking_id)
 );
 
 CREATE TABLE voucher(
@@ -128,20 +129,20 @@ CREATE TABLE apply(
 
 CREATE TABLE booking(
     cus_id char(8) NOT NULL,
-    booking_id char(8) NOT NULL,
-    status DEFAULT 'X' char(1) NOT NULL,
+    booking_id SERIAL NOT NULL,
+    status char(1) DEFAULT 'X' NOT NULL,
     time date DEFAULT NOW()::date NOT NULL,
-    check_in_date DEFAULT NOW()::date NOT NULL,
+    check_in_date date DEFAULT NOW()::date NOT NULL,
     feedback varchar(200),
     total_price money DEFAULT 0 NOT NULL,
-    payment_method DEFAULT 'cash' varchar(20) NOT NULL, 
+    payment_method varchar(20) DEFAULT 'cash' NOT NULL, 
     CONSTRAINT booking_pk PRIMARY KEY (booking_id)
 );
 
 CREATE TABLE booking_line(
-    booking_id char(8) NOT NULL,
+    booking_id INTEGER NOT NULL,
     room_id char(8) NOT NULL,
-    length_of_stay int NOT NULL,
+    length_of_stay INTEGER NOT NULL,
     price money DEFAULT 0 NOT NULL,
     time date DEFAULT NOW()::date NOT NULL,
     CONSTRAINT booking_line_pk PRIMARY KEY (booking_id, room_id)
@@ -185,6 +186,10 @@ REFERENCES customer(cus_id);
 ALTER TABLE check_in_out
 ADD CONSTRAINT cio_cus_fk_customer FOREIGN KEY (cus_id)
 REFERENCES customer(cus_id);
+
+ALTER TABLE check_in_out
+ADD CONSTRAINT cio_book_fk_booking FOREIGN KEY (booking_id)
+REFERENCES booking(booking_id)
 
 ALTER TABLE apply
 ADD CONSTRAINT app_fk_cus FOREIGN KEY (cus_id)
