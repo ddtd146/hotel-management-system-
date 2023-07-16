@@ -81,26 +81,17 @@ CREATE TABLE customer_type(
     CONSTRAINT customer_type_pk PRIMARY KEY (type_id)
 );
 
-CREATE TABLE voucher(
-    voucher_id char(8) NOT NULL,
-    name varchar(20) NOT NULL,
-    num int NOT NULL,
-    percentage float NOT NULL,
-    starting_date date NOT NULL,
-    expiry_date date NOT NULL,
-    description varchar(200),
-    CONSTRAINT voucher_pk PRIMARY KEY (voucher_id)
-);
 
 CREATE TABLE customer (
-    type_id char(8) NOT NULL,
+    type_id char(8) DEFAULT '00000000' NOT NULL,
     cus_id char(8) NOT NULL,
 	first_name varchar(20) NOT NULL,
+    cccd char(12) NOT NULL, 
 	last_name varchar(20),
 	dob date,
 	gender char(1),
-	email char(30) NOT NULL,
-    number varchar(15) NOT NULL,
+	email char(30),
+    number varchar(15),
     CONSTRAINT customer_pk PRIMARY KEY (cus_id)
 );
 
@@ -116,11 +107,23 @@ CREATE TABLE check_in_out (
     CONSTRAINT check_in_out_pk PRIMARY KEY (leader_id, cus_id)
 );
 
+CREATE TABLE voucher(
+    voucher_id char(8) NOT NULL,
+    name varchar(20) NOT NULL,
+    num int NOT NULL,
+    percentage float NOT NULL,
+    starting_date date,
+    expiry_date date,
+    description varchar(200),
+    CONSTRAINT voucher_pk PRIMARY KEY (voucher_id)
+);
+
 CREATE TABLE apply(
+    apply_id char(8) NOT NULL,
     cus_id char(8) NOT NULL,
     voucher_id char(8) NOT NULL,
     status char(1) NOT NULL,
-    CONSTRAINT apply_pk PRIMARY KEY (cus_id, voucher_id)
+    CONSTRAINT apply_pk PRIMARY KEY (apply_id)
 );
 
 CREATE TABLE booking(
