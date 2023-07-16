@@ -18,3 +18,10 @@ INSERT INTO voucher(voucher_id, name, num, percentage,description) VALUES ('0000
 INSERT INTO voucher(voucher_id, name, num, percentage) VALUES ('00001000', 'demo', 3, 20)
 
 --apply
+
+--room 
+INSERT INTO room (room_id, number, price) VALUES 
+	('00000001', '100', 30), 
+	('00000002', '102', 30), 
+	('00000003', '103', 30), 
+	('00000004', '104', 30)

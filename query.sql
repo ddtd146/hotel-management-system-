@@ -1,4 +1,4 @@
---1. Danh sach phong con trong 
+--1. Danh sach phong con trong va o tang cao 
 SELECT * FROM room
 WHERE status = 'E' 
 

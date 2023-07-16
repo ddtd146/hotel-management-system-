@@ -29,7 +29,7 @@ CREATE TABLE room(
     room_id char(8) NOT NULL,
     number char(3) NOT NULL,
     description varchar(200),
-    status char(1) NOT NULL,
+    status char(1) DEFAULT 'E' NOT NULL,
     price money NOT NULL,
     CONSTRAINT room_pk PRIMARY KEY (room_id)
 );
@@ -122,7 +122,7 @@ CREATE TABLE apply(
     apply_id SERIAL NOT NULL,
     cus_id char(8) NOT NULL,
     voucher_id char(8) NOT NULL,
-    status char(1) NOT NULL,
+    status char(1) DEFAULT 'X' NOT NULL,
     CONSTRAINT apply_pk PRIMARY KEY (apply_id)
 );
 
