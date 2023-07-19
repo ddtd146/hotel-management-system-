@@ -126,6 +126,7 @@ CREATE TABLE booking(
     check_in_date date DEFAULT NOW()::date NOT NULL,
     feedback varchar(200),
     total_price money DEFAULT 0 NOT NULL,
+    final_price money DEFAULT 0 NOT NULL,
     payment_method varchar(20) DEFAULT 'cash' NOT NULL, 
     CONSTRAINT booking_pk PRIMARY KEY (booking_id)
 );
