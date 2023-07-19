@@ -57,19 +57,10 @@ CREATE TABLE tag(
     CONSTRAINT tag_pk PRIMARY KEY (room_id, cat_id)
 );
 
-CREATE TABLE service(
-    service_id char(8) NOT NULL,
-    name varchar(20) NOT NULL,
-    description varchar(200),
-    price money NOT NULL,
-    CONSTRAINT service_pk PRIMARY KEY (service_id)
-);
-
 CREATE TABLE include(
-    room_id char(8) NOT NULL,
-    service_id char(8) NOT NULL,
-    status char(1) NOT NULL, 
-    CONSTRAINT include_pk PRIMARY KEY (room_id, service_id)
+    booking_id int NOT NULL,
+    voucher_id char(8) NOT NULL,
+    CONSTRAINT include_pk PRIMARY KEY (booking_id, voucher_id)
 );
 
 ------------------------------------------------------------
@@ -148,65 +139,40 @@ CREATE TABLE booking_line(
     CONSTRAINT booking_line_pk PRIMARY KEY (booking_id, room_id)
 );
 
----------------------
+----------------------------------------------------------------------------
 
 ALTER TABLE supply
-ADD CONSTRAINT suppy_fk_suppr FOREIGN KEY (supplier_id)
-REFERENCES supplier(supplier_id);
-
-ALTER TABLE supply
-ADD CONSTRAINT suppy_fk_fur FOREIGN KEY (fur_id)
-REFERENCES furniture(fur_id);
+ADD CONSTRAINT suppy_fk_suppr FOREIGN KEY (supplier_id) REFERENCES supplier(supplier_id),
+ADD CONSTRAINT suppy_fk_fur FOREIGN KEY (fur_id) REFERENCES furniture(fur_id);
 
 ALTER TABLE tag
-ADD CONSTRAINT tag_fk_room FOREIGN KEY (room_id)
-REFERENCES room(room_id);
-
-ALTER TABLE tag
-ADD CONSTRAINT tag_fk_cat FOREIGN KEY (cat_id)
-REFERENCES category(cat_id);
+ADD CONSTRAINT tag_fk_room FOREIGN KEY (room_id) REFERENCES room(room_id),
+ADD CONSTRAINT tag_fk_cat FOREIGN KEY (cat_id) REFERENCES category(cat_id);
 
 ALTER TABLE decor
-ADD CONSTRAINT decor_fk_room FOREIGN KEY (room_id)
-REFERENCES room(room_id);
+ADD CONSTRAINT decor_fk_room FOREIGN KEY (room_id) REFERENCES room(room_id),
+ADD CONSTRAINT decor_fk_furniture FOREIGN KEY (fur_id) REFERENCES furniture(fur_id);
 
-ALTER TABLE decor
-ADD CONSTRAINT decor_fk_furniture FOREIGN KEY (fur_id)
-REFERENCES furniture(fur_id);
 
------------------------
 ALTER TABLE customer
-ADD CONSTRAINT cus_fk_cus_type FOREIGN KEY (type_id)
-REFERENCES customer_type(type_id);
+ADD CONSTRAINT cus_fk_cus_type FOREIGN KEY (type_id) REFERENCES customer_type(type_id);
 
 ALTER TABLE check_in_out
-ADD CONSTRAINT cio_leader_fk_customer FOREIGN KEY (leader_id)
-REFERENCES customer(cus_id);
-
-ALTER TABLE check_in_out
-ADD CONSTRAINT cio_cus_fk_customer FOREIGN KEY (cus_id)
-REFERENCES customer(cus_id);
-
-ALTER TABLE check_in_out
-ADD CONSTRAINT cio_book_fk_booking FOREIGN KEY (booking_id)
-REFERENCES booking(booking_id);
+ADD CONSTRAINT cio_leader_fk_customer FOREIGN KEY (leader_id) REFERENCES customer(cus_id),
+ADD CONSTRAINT cio_cus_fk_customer FOREIGN KEY (cus_id) REFERENCES customer(cus_id), 
+ADD CONSTRAINT cio_book_fk_booking FOREIGN KEY (booking_id) REFERENCES booking(booking_id);
 
 ALTER TABLE apply
-ADD CONSTRAINT app_fk_cus FOREIGN KEY (cus_id)
-REFERENCES customer(cus_id);
-
-ALTER TABLE apply
-ADD CONSTRAINT app_fk_voucher FOREIGN KEY (voucher_id)
-REFERENCES voucher(voucher_id);
+ADD CONSTRAINT app_fk_cus FOREIGN KEY (cus_id) REFERENCES customer(cus_id),
+ADD CONSTRAINT app_fk_voucher FOREIGN KEY (voucher_id) REFERENCES voucher(voucher_id);
 
 ALTER TABLE booking
-ADD CONSTRAINT booking_fk_cus FOREIGN KEY (cus_id)
-REFERENCES customer(cus_id);
+ADD CONSTRAINT booking_fk_cus FOREIGN KEY (cus_id) REFERENCES customer(cus_id);
 
 ALTER TABLE booking_line
-ADD CONSTRAINT bookingl_fk_booking FOREIGN KEY (booking_id)
-REFERENCES booking(booking_id);
+ADD CONSTRAINT bookingl_fk_booking FOREIGN KEY (booking_id) REFERENCES booking(booking_id),
+ADD CONSTRAINT bookingl_fk_room FOREIGN KEY (room_id) REFERENCES room(room_id);
 
-ALTER TABLE booking_line
-ADD CONSTRAINT bookingl_fk_room FOREIGN KEY (room_id)
-REFERENCES room(room_id);
+ALTER TABLE include 
+ADD CONSTRAINT inc_fk_book FOREIGN KEY (booking_id) REFERENCES booking(booking_id),
+ADD CONSTRAINT inc_fk_vouc FOREIGN KEY (voucher_id) REFERENCES voucher(voucher_id);
