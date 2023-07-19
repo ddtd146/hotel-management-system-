@@ -4,22 +4,21 @@ JOIN tag USING (room_id)
 JOIN category USING (cat_id) 
 WHERE status = 'E' AND number SIMILAR TO '[7-9]%' AND tagname = 'DOUBLE'
 
---2. Danh sach service co the ap dung voi phong 
+--2. Danh sach cac doan tren 5 nguoi trong thang nay 
+SELECT booking_id, leader_id, count(*) as num_member FROM check_in_out 
+WHERE check_in_time >= '2023-07-01' AND check_in_time <= '2023-07-31'
+GROUP BY (booking_id, leader_id)
+HAVING (count(*) >= 5)
 
-SELECT * FROM service 
-JOIN include USING (service_id)
-JOIN room USING (room_id)
-WHERE number =  '404'
-END;
+--3. Danh sach voucher co the ap dung cua khach hang
 
---3. Danh sach voucher co the ap dung cua khach hang 
+SELECT * FROM voucher v
+JOIN apply a USING (voucher_id)
+JOIN customer c USING (cus_id)
+WHERE c.cus_id = '00000001' AND status = 'X' 
+AND (v.starting_date <= NOW()::date AND v.expiry_date >= NOW()::date OR v.num = -1) 
 
-SELECT * FROM voucher 
-JOIN apply USING (voucher_id)
-JOIN customer USING (cus_id)
-WHERE customer.first_name = 'Dung'
-
---4. filter theo tagname
+--4. Filter theo tagname
 
 SELECT r.* FROM room AS r
 JOIN tag t USING(room_id)
@@ -32,26 +31,19 @@ HAVING count(*) = 2
 CREATE OR REPLACE FUNCTION fnc_apply_voucher(in voucherid char(8), in cusid char(8)) returns void AS
 $$
 DECLARE 
-  cnt_vch INTEGER;
-	cnt INTEGER;
   num_vch INTEGER;
 BEGIN
-  SELECT count(*) into cnt_vch FROM voucher 
-  WHERE voucher_id = voucherid;
-  if cnt_vch <= 0 then
+  if NOT EXISTS (SELECT 1 FROM voucher WHERE voucher_id = voucherid ) then
     RAISE NOTICE 'Voucher % not found', voucherid;
 	return;
   end if;
-  SELECT count(*) into cnt FROM customer
-  WHERE cus_id = cusid;
-  if cnt <= 0 then
+  if NOT EXISTS (SELECT 1 FROM customer WHERE cus_id = cusid ) then
     RAISE NOTICE 'Customer % not found', cusid;
 	return;
   end if;
-
-  if voucherid <> '00000000' then 
-    SELECT num into num_vch FROM voucher 
-    WHERE voucher_id = voucherid;
+  SELECT num into num_vch FROM voucher 
+  WHERE voucher_id = voucherid;
+  if (num_vch >= 0) then
     if num_vch = 0 then 
       RAISE NOTICE 'The number of voucher % is zero', voucherid;
       return;
@@ -64,6 +56,7 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
 --6 trigger default apply voucher
 CREATE FUNCTION trgfnc_defaut_apply_voucher() RETURNS TRIGGER AS 
 $$
@@ -102,7 +95,7 @@ $$
 LANGUAGE plpgsql;
 
 --book room
-CREATE FUNCTION fnc_book_room(in bookingid INTEGER, in roomid char(8), in los INTEGER) RETURNS void AS
+CREATE OR REPLACE FUNCTION fnc_book_room(in bookingid INTEGER, in roomid char(8), in los INTEGER) RETURNS void AS
 $$
 BEGIN 
   if (los <= 0) then 
@@ -125,23 +118,18 @@ LANGUAGE plpgsql;
 
 
 --8 Luong khach check-in theo thang 
-CREATE VIEW check_in_view AS (
-  SELECT EXTRACT(MONTH FROM check_in_date), count(*) FROM check_in_out 
-  GROUP BY (EXTRACT(MONTH FROM check_in_date)) 
-  HAVING check_in_status = 'I' 
-)
+SELECT EXTRACT (MONTH FROM check_in_time) AS month, COUNT(*) num_check_in FROM check_in_out 
+GROUP BY (EXTRACT (MONTH FROM check_in_time))
 
 --9 fnc check-in 
 CREATE OR REPLACE FUNCTION fnc_check_in(in cusid char(8), in bookingid INTEGER) RETURNS DATE AS 
 $$
-DECLARE cnt INTEGER;
+DECLARE
 		checkindate DATE;
 		los INTEGER;
 		leaderid char(8);
 BEGIN
-  SELECT count(*) into cnt FROM customer
-  WHERE cus_id = cusid;
-  if cnt <= 0 then
+  if NOT EXISTS (SELECT 1 FROM customer WHERE cus_id = cusid) then
     RAISE NOTICE 'Customer % not found', cusid;
 	return null;
   end if;
@@ -165,7 +153,7 @@ BEGIN
   SELECT cus_id INTO leaderid FROM customer
   JOIN booking USING (cus_id) 
   WHERE booking_id = bookingid;
-  INSERT INTO check_in_out(booking_id, cus_id, leader_id) VALUES (bookingid, cusid, leaderid);
+  INSERT INTO check_in_out(booking_id, cus_id, leader_id, check_in_status) VALUES (bookingid, cusid, leaderid, 'I');
   return checkindate;
 END;
 $$
@@ -189,3 +177,12 @@ CREATE TRIGGER trg_defaulttomer_type
 AFTER INSERT ON customer 
 FOR EACH ROW 
 EXECUTE PROCEDURE trgfnc_defaulttomer_type();
+
+--11 thanh toan 
+CREATE FUNCTION fnc_pay() RETURNS money AS 
+$$
+BEGIN
+END
+$$
+LANGUAGE plpgsql;
+
