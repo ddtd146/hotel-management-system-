@@ -74,7 +74,7 @@ CREATE TABLE customer_type(
 
 
 CREATE TABLE customer (
-    type_id char(8) NOT NULL,
+    type_id char(8) DEFAULT '00001111' NOT NULL,
     cus_id char(8) NOT NULL,
 	first_name varchar(20) NOT NULL,
     cccd char(12), 
