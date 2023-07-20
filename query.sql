@@ -1,14 +1,15 @@
----- Dang Tien Dung 
----- 20215011
----- SQL file for hotel-management-database
+/* Author: Dang Tien Dung
+StudentId: 20215011
+About: SQL query file for hotel-management-database */
 
 --------------------------------------------------------
 -- View ------------------------------------------------
 
----- display number of customer check_in group by month in this year
+---- number of customer check_in group by month in this year
 SELECT EXTRACT (MONTH FROM check_in_time) AS month, COUNT(*) num_check_in FROM check_in_out
 WHERE check_in_time <= '2023-12-31' AND check_in_time >= '2023-01-01'
 GROUP BY (EXTRACT (MONTH FROM check_in_time))
+ORDER BY COUNT(*) DESC
 
 ---------------------------------------------------------
 -- Query ------------------------------------------------
@@ -17,13 +18,13 @@ GROUP BY (EXTRACT (MONTH FROM check_in_time))
 SELECT * FROM room
 JOIN tag USING (room_id)
 JOIN category USING (cat_id) 
-WHERE status = 'E' AND number SIMILAR TO '[7-9]%' AND tagname = 'DOUBLE'
+WHERE status = 'E' AND number SIMILAR TO '[7-9]%' AND tagname = 'DOUBLE';
 
----- List of groups which have more than 5 people
+---- List of groups which have more than 5 people in this month
 SELECT booking_id, leader_id, count(*) as num_member FROM check_in_out 
 WHERE check_in_time >= '2023-07-01' AND check_in_time <= '2023-07-31'
 GROUP BY (booking_id, leader_id)
-HAVING (count(*) >= 5)
+HAVING (count(*) >= 5);
 
 --- List of vouchers which owned by customer
 
@@ -31,7 +32,7 @@ SELECT * FROM voucher v
 JOIN apply a USING (voucher_id)
 JOIN customer c USING (cus_id)
 WHERE c.cus_id = '00000001' AND status = 'X' 
-AND ((v.starting_date <= NOW()::date AND v.expiry_date >= NOW()::date) OR v.num = -1) 
+AND ((v.starting_date <= NOW()::date AND v.expiry_date >= NOW()::date) OR v.num = -1) ;
 
 --- Filter by tagname of room
 
@@ -40,8 +41,7 @@ JOIN tag t USING(room_id)
 JOIN category c USING (cat_id) 
 WHERE c.tagname IN ('Double', 'Sea View')
 GROUP BY (r.*) 
-HAVING count(*) = 2
-
+HAVING count(*) = 2;
 
 ---------------------------------------------------------
 -- Function ---------------------------------------------
@@ -75,8 +75,8 @@ $$
 LANGUAGE plpgsql;
 
 
----- to check-in a customer
-CREATE OR REPLACE FUNCTION fnc_check_in(in cusid char(8), in bookingid INTEGER) RETURNS DATE AS 
+---- to check-in customer
+CREATE OR REPLACE FUNCTION fnc_check_in(in cusid char(8), in bookingid integer) RETURNS DATE AS 
 $$
 DECLARE
 		checkindate DATE;
@@ -113,6 +113,36 @@ END;
 $$
 LANGUAGE plpgsql;
 
+---- to check-out customer 
+
+CREATE OR REPLACE FUNCTION fnc_check_out(in cusid char(8), in bookingid integer) RETURNS void AS 
+$$
+DECLARE 
+  checkinstatus char(1);
+BEGIN 
+  if NOT EXISTS (SELECT 1 FROM customer WHERE cus_id = cusid) then
+    RAISE NOTICE 'Customer % not found', cusid;
+	  return;
+  end if;
+  SELECT check_in_status INTO checkinstatus FROM booking 
+  WHERE booking_id = bookingid;
+  if (check_in_status IS NULL) then 
+    RAISE NOTICE 'Booking % not found', bookingid;
+    return;
+  end if;
+  if check_in_status = 'X' then 
+    RAISE NOTICE 'You have not checked in before';
+    return;
+  end if;
+  UPDATE check_in_out 
+  SET check_out_status = 'O'
+  WHERE booking_id = bookingid AND cus_id = cusid;
+  return;
+END;
+$$
+LANGUAGE plpgsql;
+
+
 ---- create booking and book rooms
 ------ create booking
 CREATE OR REPLACE FUNCTION fnc_cre_booking(in cusid char(8)) RETURNS void AS 
@@ -138,6 +168,8 @@ LANGUAGE plpgsql;
 ------ book room
 CREATE OR REPLACE FUNCTION fnc_book_room(in bookingid INTEGER, in roomid char(8), in los INTEGER) RETURNS void AS
 $$
+DECLARE 
+  roomstatus char(1);
 BEGIN 
   if (los <= 0) then 
     RAISE NOTICE 'length of stay cant be <= 0';
@@ -147,10 +179,19 @@ BEGIN
     RAISE NOTICE 'Booking % not found', bookingid;
     return;
   end if; 
-  if NOT EXISTS (SELECT room_id FROM room WHERE room_id = roomid) then 
+  SELECT status INTO roomstatus FROM room WHERE room_id = roomid;
+  if (roomstatus IS NULL) then
     RAISE NOTICE 'Room % not found', roomid;
     return;
   end if;
+  if (roomstatus = 'U') then 
+    RAISE NOTICE 'Room % is using by someone else', roomid;
+    return;
+  end if;
+  if (roomstatus = 'X') then
+    RAISE NOTICE 'Room % is not available', roomid;
+    return;
+  end if; 
   INSERT INTO booking_line(booking_id, room_id, length_of_stay) VALUES (bookingid, roomid, los);
   return;
 END;
@@ -186,6 +227,7 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
 ---------------------------------------------------------
 -- Trigger-----------------------------------------------
 
@@ -202,7 +244,8 @@ LANGUAGE plpgsql;
 CREATE TRIGGER trg_default_give_voucher 
 AFTER INSERT ON customer 
 FOR EACH ROW 
-EXECUTE PROCEDURE trgfnc_defaut_give_voucher()
+EXECUTE PROCEDURE trgfnc_defaut_give_voucher();
+
 
 ---- defaut customer type 
 CREATE FUNCTION trgfnc_default_customer_type() RETURNS trigger AS
@@ -223,8 +266,9 @@ AFTER INSERT ON customer
 FOR EACH ROW 
 EXECUTE PROCEDURE trgfnc_default_customer_type();
 
+
 ---- to calculate price of each line in a booking
-CCREATE OR REPLACE FUNCTION trgfnc_cal_booking_line() RETURNS trigger AS
+CREATE OR REPLACE FUNCTION trgfnc_cal_booking_line() RETURNS trigger AS
 $$
 DECLARE 
   price_per_night MONEY;
@@ -253,8 +297,8 @@ AFTER INSERT OR UPDATE ON booking_line
 FOR EACH ROW 
 EXECUTE FUNCTION trgfnc_cal_booking_line();
 
----- to calculate total price (before apply voucher) of a booking
 
+---- to calculate total price (before apply voucher) of a booking
 CREATE OR REPLACE FUNCTION trgfnc_cal_total() RETURNS trigger AS
 $$
 BEGIN
@@ -296,8 +340,8 @@ BEFORE UPDATE ON booking_line
 FOR EACH ROW
 EXECUTE FUNCTION trgfnc_cal_total();
 
----- to calculate final price of a booking-
 
+---- to calculate final price of a booking
 CREATE OR REPLACE FUNCTION trgfnc_cal_final() RETURNS trigger AS 
 $$
 DECLARE 
