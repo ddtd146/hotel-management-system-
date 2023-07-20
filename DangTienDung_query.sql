@@ -117,6 +117,7 @@ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION fnc_check_out(in cusid char(8), in bookingid integer) RETURNS void AS 
 $$
+
 DECLARE 
   checkinstatus char(1);
 BEGIN 
@@ -124,21 +125,21 @@ BEGIN
     RAISE NOTICE 'Customer % not found', cusid;
 	  return;
   end if;
-  SELECT check_in_status INTO checkinstatus FROM booking 
-  WHERE booking_id = bookingid;
-  if (check_in_status IS NULL) then 
+  SELECT check_in_status INTO checkinstatus FROM check_in_out
+  WHERE booking_id = bookingid AND cus_id = cusid;
+  if NOT EXISTS (SELECT 1 FROM booking WHERE booking_id = bookingid) then 
     RAISE NOTICE 'Booking % not found', bookingid;
     return;
   end if;
-  if check_in_status = 'X' then 
+  if checkinstatus = 'X' OR checkinstatus IS NULL then 
     RAISE NOTICE 'You have not checked in before';
     return;
   end if;
   UPDATE check_in_out 
   SET check_out_status = 'O'
   WHERE booking_id = bookingid AND cus_id = cusid;
-  return;
 END;
+
 $$
 LANGUAGE plpgsql;
 
