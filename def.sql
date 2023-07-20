@@ -63,8 +63,6 @@ CREATE TABLE include(
     CONSTRAINT include_pk PRIMARY KEY (booking_id, voucher_id)
 );
 
-------------------------------------------------------------
-
 CREATE TABLE customer_type(
     type_id char(8) NOT NULL,
     condition varchar(200),

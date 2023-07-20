@@ -117,7 +117,6 @@ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION fnc_check_out(in cusid char(8), in bookingid integer) RETURNS void AS 
 $$
-
 DECLARE 
   checkinstatus char(1);
 BEGIN 
