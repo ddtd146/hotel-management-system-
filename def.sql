@@ -45,7 +45,7 @@ CREATE TABLE decor(
 
 CREATE TABLE category(
     cat_id char(8) NOT NULL,
-    tangname varchar(30) NOT NULL,
+    tagname varchar(30) NOT NULL,
     description varchar(200),
     color varchar(10) NOT NULL,
     CONSTRAINT cat_pk PRIMARY KEY (cat_id)
