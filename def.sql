@@ -154,7 +154,8 @@ ADD CONSTRAINT decor_fk_furniture FOREIGN KEY (fur_id) REFERENCES furniture(fur_
 
 
 ALTER TABLE customer
-ADD CONSTRAINT cus_fk_cus_type FOREIGN KEY (type_id) REFERENCES customer_type(type_id);
+ADD CONSTRAINT cus_fk_cus_type FOREIGN KEY (type_id) REFERENCES customer_type(type_id),
+ADD CONSTRAINT cccd_unique UNIQUE (cccd);
 
 ALTER TABLE check_in_out
 ADD CONSTRAINT cio_leader_fk_customer FOREIGN KEY (leader_id) REFERENCES customer(cus_id),
@@ -175,3 +176,4 @@ ADD CONSTRAINT bookingl_fk_room FOREIGN KEY (room_id) REFERENCES room(room_id);
 ALTER TABLE include 
 ADD CONSTRAINT inc_fk_book FOREIGN KEY (booking_id) REFERENCES booking(booking_id),
 ADD CONSTRAINT inc_fk_vouc FOREIGN KEY (voucher_id) REFERENCES voucher(voucher_id);
+
