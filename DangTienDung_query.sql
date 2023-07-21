@@ -2,17 +2,16 @@
 StudentId: 20215011
 About: SQL query file for hotel-management-database */
 
---------------------------------------------------------
--- View ------------------------------------------------
 
----- number of customer check_in group by month in this year
-SELECT EXTRACT (MONTH FROM check_in_time) AS month, COUNT(*) num_check_in FROM check_in_out
-WHERE check_in_time <= '2023-12-31' AND check_in_time >= '2023-01-01'
-GROUP BY (EXTRACT (MONTH FROM check_in_time))
-ORDER BY COUNT(*) DESC
 
 ---------------------------------------------------------
 -- Query ------------------------------------------------
+
+---- number of customer check_in group by month in this year
+SELECT EXTRACT (MONTH FROM check_in_time) AS month, COUNT(*) num_check_in FROM check_in_out
+WHERE check_in_time <= '2023-12-31' AND check_in_time >= '2023-01-01' 
+GROUP BY (EXTRACT (MONTH FROM check_in_time))
+ORDER BY COUNT(*) DESC
 
 ---- list of empty double rooms in floor 7, 8, 9
 SELECT * FROM room
@@ -20,19 +19,19 @@ JOIN tag USING (room_id)
 JOIN category USING (cat_id) 
 WHERE status = 'E' AND number SIMILAR TO '[7-9]%' AND tagname = 'DOUBLE';
 
----- List of groups which have more than 5 people in this month
+---- List of groups which have more than 4 people in this month
 SELECT booking_id, leader_id, count(*) as num_member FROM check_in_out 
 WHERE check_in_time >= '2023-07-01' AND check_in_time <= '2023-07-31'
 GROUP BY (booking_id, leader_id)
 HAVING (count(*) >= 5);
 
---- List of vouchers which owned by customer
+--- List of vouchers which owned by customer (can apply)
 
 SELECT * FROM voucher v
 JOIN apply a USING (voucher_id)
 JOIN customer c USING (cus_id)
 WHERE c.cus_id = '00000001' AND status = 'X' 
-AND ((v.starting_date <= NOW()::date AND v.expiry_date >= NOW()::date) OR v.num = -1) ;
+AND ((v.starting_date <= NOW()::date AND (v.expiry_date >= NOW()::date OR v.expiry_date IS NULL)) OR v.num = -1) ;
 
 --- Filter by tagname of room
 
@@ -76,7 +75,7 @@ LANGUAGE plpgsql;
 
 
 ---- to check-in customer
-CREATE OR REPLACE FUNCTION fnc_check_in(in cusid char(8), in bookingid integer) RETURNS DATE AS 
+CREATE OR REPLACE FUNCTION fnc_check_in(in cusid char(8), in bookingid integer) RETURNS void AS 
 $$
 DECLARE
 		checkindate DATE;
@@ -85,30 +84,30 @@ DECLARE
 BEGIN
   if NOT EXISTS (SELECT 1 FROM customer WHERE cus_id = cusid) then
     RAISE NOTICE 'Customer % not found', cusid;
-	return null;
+	return;
   end if;
   SELECT b.check_in_date INTO checkindate FROM booking b
   WHERE booking_id = bookingid;
   if checkindate IS NULL then 
     RAISE NOTICE 'Booking % not found', bookingid;
-    return null;
+    return;
   end if;
   if checkindate > NOW()::date then 
     RAISE NOTICE 'Too soon. Coming later';
-    return checkindate;
+    return;
   end if;
   SELECT max(length_of_stay) INTO los FROM booking 
    JOIN booking_line USING (booking_id)
    WHERE booking_id = bookingid;
   if checkindate + los <= NOW()::date then 
     RAISE NOTICE 'Too late. Cant checkin';
-    return checkindate + los;
+    return;
   end if;
   SELECT cus_id INTO leaderid FROM customer
   JOIN booking USING (cus_id) 
   WHERE booking_id = bookingid;
   INSERT INTO check_in_out(booking_id, cus_id, leader_id, check_in_status) VALUES (bookingid, cusid, leaderid, 'I');
-  return checkindate;
+  return;
 END;
 $$
 LANGUAGE plpgsql;
@@ -122,7 +121,7 @@ DECLARE
 BEGIN 
   if NOT EXISTS (SELECT 1 FROM customer WHERE cus_id = cusid) then
     RAISE NOTICE 'Customer % not found', cusid;
-	  return;
+    return;
   end if;
   SELECT check_in_status INTO checkinstatus FROM check_in_out
   WHERE booking_id = bookingid AND cus_id = cusid;
