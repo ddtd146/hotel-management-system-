@@ -349,16 +349,11 @@ DECLARE
   total money;
   bookingid int;
 BEGIN  
-  if (TG_OP = 'UPDATE') then 
+  if (TG_OP = 'INSERT' OR TG_OP = 'UPDATE') then 
     SELECT total_price, booking_id INTO total, bookingid FROM booking
     WHERE booking_id = NEW.booking_id;
-  elsif (TG_OP = 'INSERT') then 
-    SELECT total_price, booking_id INTO total, bookingid FROM include
-    JOIN booking USING (booking_id)
-    WHERE booking_id = NEW.booking_id;
-  else then 
-    SELECT total_price, booking_id INTO total, bookingid FROM include
-    JOIN booking USING (booking_id)
+  else 
+    SELECT total_price, booking_id INTO total, bookingid FROM booking
     WHERE booking_id = OLD.booking_id;
   end if;
   final = total;
